@@ -1,6 +1,6 @@
-# Gym Membership Expiry Reminder Automation
+# Gym Membership Reminder Automation
 
-An n8n workflow that checks gym membership expiry dates, filters records using membership and reminder-status conditions, sends reminder emails through Gmail, and updates Google Sheets after sending.
+An n8n workflow that checks gym membership dates, filters records using membership and reminder-status conditions, sends reminder emails through Gmail, and updates Google Sheets after sending.
 
 ## Tech Stack
 
