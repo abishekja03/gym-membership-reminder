@@ -16,9 +16,9 @@ An n8n workflow that checks gym membership dates, filters records using membersh
 3. **Code in JavaScript** calculates `days_until_expiry` and sets `should_remind` when the expiry date is between today and three days away (inclusive).
 4. **If** checks `should_remind`.
 5. **If1** applies the configured payment-status condition.
-6. **If2** checks whether `Remainder_status` is empty, helping avoid sending a second reminder to records already marked as sent.
+6. **If2** checks whether `Reminder_status` is empty, helping avoid sending a second reminder to records already marked as sent.
 7. **Send a message** sends the HTML reminder through Gmail.
-8. **Append or update row in sheet** updates the matching member row and sets `Remainder_status` to `SENT`.
+8. **Append or update row in sheet** updates the matching member row and sets `Reminder_status` to `SENT`.
 
 ## Google Sheets Columns
 
@@ -32,13 +32,13 @@ The workflow expects these columns:
 - `Start_date`
 - `Expiry_date`
 - `Payment_status`
-- `Remainder_status`
+- `Reminder_status`
 
-Use `Member_ID` as the unique matching key. The workflow uses the spelling `Remainder_status` in its current configuration.
+Use `Member_ID` as the unique matching key. The workflow uses the spelling `Reminder_status` in its current configuration.
 
 ## Setup
 
-1. Import `gym-membership-expiry-reminder-public.json` into your n8n instance.
+1. Import `gym-membership-reminder-public.json` into your n8n instance.
 2. Create or select a Google Sheet with the columns listed above.
 3. Connect your own Google Sheets account in the relevant n8n nodes and select your spreadsheet and worksheet.
 4. Connect your Gmail account in the Gmail node.
@@ -62,7 +62,7 @@ The exported workflow is provided without account credentials and spreadsheet id
 ## Repository Contents
 
 - `README.md` — project documentation
-- `gym-membership-expiry-reminder-public.json` — sanitized n8n workflow export
+- `gym-membership-reminder-public.json` — sanitized n8n workflow export
 - `workflow-screenshot.png` — workflow overview screenshot (optional)
 
 ## Future Improvements
