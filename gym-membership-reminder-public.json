@@ -1,0 +1,408 @@
+{
+  "name": "Gym Membership Reminder",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        128,
+        0
+      ],
+      "id": "7b06da24-89e0-44ad-90d8-80da7849d705",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "cachedResultName": "Gym_Membership"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        320,
+        0
+      ],
+      "id": "8578b7f7-bf09-4987-9e61-e05d8d8f3bd0",
+      "name": "Get row(s) in sheet"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "1e06e937-8a17-44a9-935f-67b38d59522c",
+              "leftValue": "={{ $json.should_remind }}",
+              "rightValue": "Today + 3 days",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        672,
+        0
+      ],
+      "id": "78622388-ab91-4333-84f2-239fec6d4d04",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const expiry = new Date($json.Expiry_date + 'T00:00:00');\n\nconst today = new Date();\ntoday.setHours(0, 0, 0, 0);\n\nconst daysUntilExpiry = Math.ceil(\n  (expiry - today) / (1000 * 60 * 60 * 24)\n);\n\nreturn {\n  json: {\n    ...$json,\n    days_until_expiry: daysUntilExpiry,\n    should_remind: daysUntilExpiry >= 0 && daysUntilExpiry <= 3\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        496,
+        0
+      ],
+      "id": "66d190a5-75e4-4866-be70-0f3086e6da6d",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Email }}",
+        "subject": "Gym Membership Expiry Remainder",
+        "message": "=={{ `\n<h2>Hello ${$json.Name}!</h2>\n\n<p>This is a reminder that your gym membership is expiring soon.</p>\n\n<p><b>Member Name:</b> ${$json.Name}</p>\n\n<p><b>Membership Plan:</b> ${$json.Membership_plan}</p>\n\n<p><b>Expiry Date:</b> ${$json.Expiry_date}</p>\n\n<p><b>Days Remaining:</b> ${$json.days_until_expiry}</p>\n\n<p>Please renew your membership to continue enjoying our gym facilities.</p>\n\n<p>Thank you!</p>\n\n<p>Gym Management Team</p>\n` }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1360,
+        -48
+      ],
+      "id": "2c7f4efc-1e61-44ab-af42-50996bf66e09",
+      "name": "Send a message"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "ca1d55b2-d3a4-42a2-b5e6-c6201a1f23b9",
+              "leftValue": "={{ $json.Payment_status }}",
+              "rightValue": "pending",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        880,
+        0
+      ],
+      "id": "a86d3abc-c0fc-4cf0-b7a0-e8301f674d70",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "11af23a7-d423-4c9f-8c5f-94499385e01f",
+              "leftValue": "={{ $json.Remainder_status }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        1104,
+        0
+      ],
+      "id": "c84746a7-d71b-498a-afb7-3014d7e3f6ae",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "cachedResultName": "Gym_Membership"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Member_ID": "={{ $('If2').item.json.Member_ID }}",
+            "Remainder_status": "SENT",
+            "Name": "={{ $('If2').item.json.Name }}",
+            "Email": "={{ $('If2').item.json.Email }}",
+            "Phone": "={{ $('If2').item.json.Phone }}",
+            "Start_date": "={{ $('If2').item.json.Start_date }}",
+            "Expiry_date": "={{ $('If2').item.json.Expiry_date }}",
+            "Payment_status": "={{ $('If2').item.json.Payment_status }}",
+            "Membership_plan": "={{ $('If2').item.json.Membership_plan }}"
+          },
+          "matchingColumns": [
+            "Member_ID"
+          ],
+          "schema": [
+            {
+              "id": "Member_ID",
+              "displayName": "Member_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Membership_plan",
+              "displayName": "Membership_plan",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Start_date",
+              "displayName": "Start_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Expiry_date",
+              "displayName": "Expiry_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Payment_status",
+              "displayName": "Payment_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Remainder_status",
+              "displayName": "Remainder_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1536,
+        16
+      ],
+      "id": "15955452-a88d-4234-8181-ea5258813422",
+      "name": "Append or update row in sheet"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "tags": []
+}
